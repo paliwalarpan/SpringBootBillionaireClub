@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/billonaireClub")
+@RequestMapping("/api/")
 public class BillionaireController {
 	private static final Logger logger =
 			LoggerFactory.getLogger(BillionaireController.class);
@@ -24,7 +24,7 @@ public class BillionaireController {
         this.billionairesService = billionairesService;
     }
 
-    @GetMapping(path = "/billionaires", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/billionaire", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Billionaires> findAll() {
     	logger.info("findAll method ");
         return billionairesService.listAll();
