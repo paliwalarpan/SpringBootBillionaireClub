@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS billionaires;
+/*DROP TABLE IF EXISTS billionaires;
 
 CREATE TABLE billionaires (
   id INT AUTO_INCREMENT  PRIMARY KEY,
@@ -11,4 +11,4 @@ CREATE TABLE billionaires (
 INSERT INTO billionaires (first_name, last_name, company,wealth) VALUES
   ('Jeff', 'Bezos','Amazon', '$64.4 B'),
   ('Bill', 'Gates', 'Microsoft', '$109.9 B'),
-  ('Mark', 'Zuckerberg','Facebook', '$85.4 B');
+  ('Mark', 'Zuckerberg','Facebook', '$85.4 B');*/
