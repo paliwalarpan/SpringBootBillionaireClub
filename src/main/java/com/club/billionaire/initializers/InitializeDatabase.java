@@ -6,9 +6,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -17,16 +18,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class InitializeDatabase {
+@Slf4j
+public class InitializeDatabase implements ApplicationRunner {
 
-    @Autowired
     private BillionairesRepository billionairesRepository;
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void fillDatabaseDuringStartup() throws JsonProcessingException {
+    private Forbes400Properties forbes400Properties;
+
+    @Autowired
+    public InitializeDatabase(BillionairesRepository billionairesRepository, Forbes400Properties forbes400Properties) {
+        this.billionairesRepository = billionairesRepository;
+        this.forbes400Properties = forbes400Properties;
+    }
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        log.info("refreshing DB...");
+        fillDatabaseDuringStartup();
+        log.info("DB refresh complete...");
+
+    }
+
+    private void fillDatabaseDuringStartup() throws JsonProcessingException {
         List<Billionaires> billionaires = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
-        final ResponseEntity<String> forEntity = restTemplate.getForEntity("https://forbes400.herokuapp.com/api/forbes400?limit=50", String.class);
+        final ResponseEntity<String> forEntity = restTemplate.getForEntity(forbes400Properties.buildEndPoint(), String.class);
+        if (forEntity.getStatusCode().isError()) {
+            throw new InitializationFailedException("Issue with forbes 400 service");
+        }
         ObjectMapper objectMapper = new ObjectMapper();
         final JsonNode jsonNode = objectMapper.readTree(forEntity.getBody());
         if (jsonNode.isArray()) {
@@ -41,13 +60,10 @@ public class InitializeDatabase {
                 Number netWorth = JsonPath.read(billionaireString, "$.finalWorth");
                 bill.setWealth(String.valueOf(netWorth) + "B");
                 billionaires.add(bill);
-                System.out.println("alll");
-
             }
         }
         billionairesRepository.saveAll(billionaires);
-     /*   System.out.println(forEntity.getStatusCode());
-        System.out.println(forEntity.getBody());*/
     }
+
 
 }
