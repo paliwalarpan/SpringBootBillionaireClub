@@ -21,14 +21,19 @@ import java.util.List;
 @Slf4j
 public class InitializeDatabase implements ApplicationRunner {
 
+
     private BillionairesRepository billionairesRepository;
 
     private Forbes400Properties forbes400Properties;
 
+    private final RestTemplate restTemplate;
+
     @Autowired
-    public InitializeDatabase(BillionairesRepository billionairesRepository, Forbes400Properties forbes400Properties) {
+    public InitializeDatabase(BillionairesRepository billionairesRepository,
+                              Forbes400Properties forbes400Properties, RestTemplate restTemplate) {
         this.billionairesRepository = billionairesRepository;
         this.forbes400Properties = forbes400Properties;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -36,18 +41,16 @@ public class InitializeDatabase implements ApplicationRunner {
         log.info("refreshing DB...");
         fillDatabaseDuringStartup();
         log.info("DB refresh complete...");
-
     }
 
     private void fillDatabaseDuringStartup() throws JsonProcessingException {
         List<Billionaires> billionaires = new ArrayList<>();
-        RestTemplate restTemplate = new RestTemplate();
-        final ResponseEntity<String> forEntity = restTemplate.getForEntity(forbes400Properties.buildEndPoint(), String.class);
-        if (forEntity.getStatusCode().isError()) {
+        final ResponseEntity<String> forbes400ResponseEntity = restTemplate.getForEntity(forbes400Properties.buildEndPoint(), String.class);
+        if (forbes400ResponseEntity.getStatusCode().isError()) {
             throw new InitializationFailedException("Issue with forbes 400 service");
         }
         ObjectMapper objectMapper = new ObjectMapper();
-        final JsonNode jsonNode = objectMapper.readTree(forEntity.getBody());
+        final JsonNode jsonNode = objectMapper.readTree(forbes400ResponseEntity.getBody());
         if (jsonNode.isArray()) {
             for (JsonNode eachBillionaire : jsonNode) {
                 Billionaires bill = new Billionaires();
@@ -58,7 +61,7 @@ public class InitializeDatabase implements ApplicationRunner {
                 String company = JsonPath.read(billionaireString, "$.source");
                 bill.setCompany(company);
                 Number netWorth = JsonPath.read(billionaireString, "$.finalWorth");
-                bill.setWealth(String.valueOf(netWorth) + "B");
+                bill.setWealth(netWorth + "B");
                 billionaires.add(bill);
             }
         }
