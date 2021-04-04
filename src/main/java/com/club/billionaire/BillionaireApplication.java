@@ -1,7 +1,9 @@
 package com.club.billionaire;
 
+import com.club.billionaire.initializers.Forbes400Properties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -11,6 +13,7 @@ import java.time.Duration;
 
 @SpringBootApplication
 @Import(SwaggerConfig.class)
+@EnableConfigurationProperties(Forbes400Properties.class)
 public class BillionaireApplication {
 
     public static void main(String[] args) {
